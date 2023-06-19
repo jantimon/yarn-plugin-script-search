@@ -28,6 +28,13 @@ const getRunCommandClass = (): (new () => RunCommand) | undefined => {
     );
     return RunCommandClass as new () => RunCommand;
   } catch (e) {}
+  return class extends BaseCommand {
+    constructor() {
+      super();
+      throw new Error("heuristic module detection failed");
+    }
+    async execute(): Promise<number | void> {}
+  } as unknown as new () => RunCommand;
 };
 
 const getCommonCommands = () => {
@@ -40,63 +47,26 @@ const getCommonCommands = () => {
     .filter(Boolean);
 };
 
-/**
- * Create a yarn fallback command which runs if no other command matches.
- *
- * By now yarn has no official API for this, so the underlying implementation is quite fragile.
- * It might break with future yarn versions.
- */
-export const createCatchAllCommand = (
-  scriptNames: string[],
-  executeFallback: (scriptName: string, command: BaseCommand) => Promise<void>
-) => {
-  const commands: (new () => BaseCommand)[] = [];
-
-  class DirectCommand extends BaseCommand {
-    static paths = [scriptNames];
-    async execute() {
-      executeFallback(scriptName, this);
-    }
-  }
-
-  if (scriptNames.length) {
-    commands.push(DirectCommand);
-  }
-
+const getCurrentPath = () => {
   const scriptName = process.argv[2];
   if (!scriptName || getCommonCommands().includes(scriptName)) {
-    return commands;
+    return "__";
   }
-  const RunCommandClass = getRunCommandClass();
-  if (!RunCommandClass) {
-    console.warn("heuristic module detection failed, fallback will not work");
-    return commands;
-  }
-  class FallbackScriptCommand extends RunCommandClass {
-    static paths = [[scriptName]];
-
-    constructor() {
-      super();
-    }
-
-    scriptName = scriptName;
-
-    async execute() {
-      try {
-        return await super.execute();
-      } catch (e) {
-        if (
-          e instanceof Error &&
-          e.message.startsWith("Couldn't find a script name")
-        ) {
-          await executeFallback(scriptName, this);
-          return;
-        }
-        throw e;
-      }
-    }
-  }
-
-  commands.push(FallbackScriptCommand);
-  return commands;
+  return scriptName;
 };
+
+/**
+ * This command will execute if no other script or essential plugin was called.
+ *
+ * Unfortunately it might conflict with other custom plugins.
+ */
+export abstract class CatchAllCommand extends getRunCommandClass() {
+  static paths = [[getCurrentPath()]];
+
+  constructor() {
+    super();
+  }
+
+  // Overwrite RunCommand scriptName
+  scriptName = getCurrentPath();
+}
