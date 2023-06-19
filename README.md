@@ -14,7 +14,7 @@ yarn plugin import https://raw.githubusercontent.com/jantimon/yarn-plugin-script
 Search for a script
 
 ```
-  yarn search
+  yarn x myScript
 ```
 
 ![Demo of yarn-plugin-script-search](https://raw.githubusercontent.com/jantimon/yarn-plugin-script-search/main/preview.gif)

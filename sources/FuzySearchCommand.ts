@@ -4,6 +4,8 @@ import { FuseAutoComplete } from "./fuseAutoComplete";
 import { PackageContext, readCurrentPackage } from "./readCurrentPackage";
 import InputPrompt from "enquirer/lib/prompts/input";
 
+const pluginCommandName = "x";
+
 export class FuzySearchCommand extends CatchAllCommand {
   async execute() {
     try {
@@ -34,8 +36,10 @@ export class FuzySearchCommand extends CatchAllCommand {
   private async askForScriptName(): Promise<{ cmd: string; args: string[] }> {
     const packageContext = await readCurrentPackage(this);
 
-    // Ignore search as scriptName to allow `yarn search` or `yarn search baz`
-    const cliArgs = process.argv.slice(this.scriptName !== "search" ? 2 : 3);
+    // Ignore x as scriptName to allow `yarn x` or `yarn x baz`
+    const cliArgs = process.argv.slice(
+      this.scriptName !== pluginCommandName ? 2 : 3
+    );
     const input = cliArgs.shift() || "";
 
     if (input) {
