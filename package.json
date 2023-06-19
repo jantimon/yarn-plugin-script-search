@@ -3,7 +3,8 @@
   "main": "./sources/index.ts",
   "scripts": {
     "build": "builder build plugin",
-    "prettier": "prettier sources --write"
+    "prettier": "prettier sources --write",
+    "docs": "node ./docs.cjs"
   },
   "devDependencies": {
     "@yarnpkg/builder": "^2",
@@ -19,5 +20,8 @@
     "typescript": "4.4.3"
   },
   "license": "MIT",
-  "packageManager": "yarn@3.0.2"
+  "packageManager": "yarn@3.0.2",
+  "yarn-plugin-script-search": {
+    "documentation": "docs"
+  }
 }

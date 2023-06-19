@@ -1,6 +1,8 @@
 import { CatchAllCommand } from "./CatchAllCommand";
+import { escapArgs, extractQuotedTexts } from "./escapeShell";
 import { FuseAutoComplete } from "./fuseAutoComplete";
-import { readCurrentPackage } from "./readCurrentPackage";
+import { PackageContext, readCurrentPackage } from "./readCurrentPackage";
+import InputPrompt from "enquirer/lib/prompts/input";
 
 export class FuzySearchCommand extends CatchAllCommand {
   async execute() {
@@ -19,16 +21,17 @@ export class FuzySearchCommand extends CatchAllCommand {
         throw e;
       }
       // Prompt the user for a new script
-      const scriptName = await this.askForScriptName();
-      this.scriptName = scriptName;
-      if (scriptName) {
+      const { cmd, args } = await this.askForScriptName();
+      this.scriptName = cmd;
+      this.args = args;
+      if (cmd) {
         // Execute the script
         this.execute();
       }
     }
   }
 
-  private async askForScriptName(): Promise<string> {
+  private async askForScriptName(): Promise<{ cmd: string; args: string[] }> {
     const packageContext = await readCurrentPackage(this);
 
     const input = this.scriptName !== "search" ? this.scriptName : "";
@@ -44,6 +47,46 @@ export class FuzySearchCommand extends CatchAllCommand {
       input,
     });
 
-    return await prompt.run().catch(() => "");
+    const cmd = await prompt.run().catch(() => null);
+    if (cmd === null) {
+      return { cmd: "", args: [] };
+    }
+
+    if (cmd) {
+      await this.renderDocs(packageContext, cmd);
+    }
+
+    const initialArgs = escapArgs(process.argv.slice(3));
+    const argPrompt = new InputPrompt({
+      name: "args",
+      initial: initialArgs,
+    });
+    argPrompt.cursor = initialArgs.length;
+
+    const args = await argPrompt.run().catch(() => null);
+    if (args === null) {
+      this.scriptName = input;
+      return { cmd: "", args: [] };
+    }
+
+    return {
+      cmd,
+      args: extractQuotedTexts(args),
+    };
+  }
+
+  private async renderDocs(packageContext: PackageContext, scriptName: string) {
+    const { documentation } = packageContext.pluginConfig;
+    // Allow to ouput script documentation by defining a script
+    // in the projects package.json yarn-plugin-script-search documentation
+    if (documentation) {
+      this.scriptName = documentation;
+      this.args = [scriptName];
+      try {
+        await this.execute();
+      } catch (e) {
+        // ignore
+      }
+    }
   }
 }
