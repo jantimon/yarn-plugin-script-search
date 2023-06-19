@@ -34,7 +34,10 @@ export class FuzySearchCommand extends CatchAllCommand {
   private async askForScriptName(): Promise<{ cmd: string; args: string[] }> {
     const packageContext = await readCurrentPackage(this);
 
-    const input = this.scriptName !== "search" ? this.scriptName : "";
+    // Ignore search as scriptName to allow `yarn search` or `yarn search baz`
+    const cliArgs = process.argv.slice(this.scriptName !== "search" ? 2 : 3);
+    const input = cliArgs.shift() || "";
+
     if (input) {
       console.log(`"yarn ${input}" not found in ${packageContext.name}\n\n`);
     }
@@ -56,9 +59,9 @@ export class FuzySearchCommand extends CatchAllCommand {
       await this.renderDocs(packageContext, cmd);
     }
 
-    const initialArgs = escapArgs(process.argv.slice(3));
+    const initialArgs = escapArgs(cliArgs);
     const argPrompt = new InputPrompt({
-      name: "args",
+      name: "🔥 Press [Enter] to run",
       initial: initialArgs,
     });
     argPrompt.cursor = initialArgs.length;

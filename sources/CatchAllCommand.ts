@@ -49,7 +49,11 @@ const getCommonCommands = () => {
 
 const getCurrentPath = () => {
   const scriptName = process.argv[2];
-  if (!scriptName || getCommonCommands().includes(scriptName)) {
+  if (
+    !scriptName ||
+    scriptName.startsWith("-") ||
+    getCommonCommands().includes(scriptName)
+  ) {
     return "__";
   }
   return scriptName;
