@@ -44,10 +44,11 @@ const getCommonCommands = () => {
   // Yarns build process tries to resolve ESM default exports which breaks the import.
   // We work around this with a string literal:
   const essentialPluginCommands = essentialsPlugin["def" + "ault"].commands;
-  return [...essentialPluginCommands, ...ignoreList]
+  const essentialScriptNames = essentialPluginCommands
     .map((cmd) => (cmd?.paths || []).map((l) => l && l[0]))
     .flat()
     .filter(Boolean);
+  return [...essentialScriptNames, ...ignoreList];
 };
 
 const getCurrentPath = () => {
