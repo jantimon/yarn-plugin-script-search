@@ -48,7 +48,7 @@ const getCommonCommands = () => {
     .map((cmd) => (cmd?.paths || []).map((l) => l && l[0]))
     .flat()
     .filter(Boolean);
-  return [...essentialScriptNames, ...ignoreList];
+  return [...ignoreList, ...essentialScriptNames];
 };
 
 const getCurrentPath = () => {
