@@ -3,6 +3,9 @@ import { BaseCommand } from "@yarnpkg/cli";
 // Hack around crazy compiler optimizations which break the import 🤷‍♂️
 import * as essentialsPlugin from "@yarnpkg/plugin-essentials";
 
+// Right now there is no other way to ignore other 3rd party plugins
+const ignoreList = ["leaf"];
+
 /**
  * The Fallback Command is `yarn run`.
  * It is part of the `@yarnpkg/plugin-essentials` module.
@@ -41,7 +44,7 @@ const getCommonCommands = () => {
   // Yarns build process tries to resolve ESM default exports which breaks the import.
   // We work around this with a string literal:
   const essentialPluginCommands = essentialsPlugin["def" + "ault"].commands;
-  return essentialPluginCommands
+  return [...essentialPluginCommands, ...ignoreList]
     .map((cmd) => (cmd?.paths || []).map((l) => l && l[0]))
     .flat()
     .filter(Boolean);
