@@ -4,7 +4,7 @@ import { BaseCommand } from "@yarnpkg/cli";
 import * as essentialsPlugin from "@yarnpkg/plugin-essentials";
 
 // Right now there is no other way to ignore other 3rd party plugins
-const ignoreList = ["leaf"];
+const ignoreList = ["leaf", "upgrade-interactive"];
 
 /**
  * The Fallback Command is `yarn run`.
